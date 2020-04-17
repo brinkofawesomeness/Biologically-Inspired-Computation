@@ -1,0 +1,2 @@
+# Hopfield Network
+The purpose for this project is to investigate the associative memory capacity of a Hopfield network. This was done by creating a simulator that computes the local fields of 50 randomly assigned patterns, determines the next state of the patterns based on this field, and then compares them to the original neural network to determine if it is stable or not. The resulting raw data is an average over 100 seperate runs.

@@ -11,7 +11,6 @@
  * This program simulates the particle swarm optimization algorithm...
  * 
  * */
-
 #include <algorithm>
 #include <iostream>
 //#include <fstream>
@@ -64,9 +63,6 @@ Particle::Particle() {
     xbest = xpos = (rand1 - (width / 2.0));
     ybest = ypos = (rand2 - (height / 2.0));
     xvelocity = yvelocity = 0.0;
-
-    cout << "xpos = " << xpos << endl;
-    cout << "ypos = " << ypos << endl << endl;
 }
 
 
@@ -82,6 +78,12 @@ void Particle::update() {
     // Update velocity
     xvelocity = inertia * xvelocity + cognition * rand1 * (xbest - xpos) + social * rand2 * (xGlobalBest - xpos);
     yvelocity = inertia * yvelocity + cognition * rand3 * (ybest - ypos) + social * rand4 * (yGlobalBest - ypos);
+
+    // Scale velocity
+    if ((pow(xvelocity, 2.0) + pow(yvelocity, 2.0)) > pow(maxVelocity, 2.0)) {
+        xvelocity = (maxVelocity / (sqrt(pow(xvelocity, 2.0) + pow(yvelocity, 2.0)))) * xvelocity;
+        yvelocity = (maxVelocity / (sqrt(pow(xvelocity, 2.0) + pow(yvelocity, 2.0)))) * yvelocity;
+    }
 
     // Update position
     xpos += xvelocity;
@@ -173,7 +175,7 @@ int main(int argc, char** argv) {
 /* FITNESS FUNCTION */
 double fitness(double x, double y) {
 
-    double mdist = ((sqrt(pow((width / 2.0), 2.0) + pow((height / 2.0), 2.0))) / 2.0);
+    double mdist = ((sqrt(pow(width, 2.0) + pow(height, 2.0))) / 2.0);
     double pdist = sqrt(pow((x - 20.0), 2.0) + pow((y - 7.0), 2.0));
     double ndist = sqrt(pow((x + 20.0), 2.0) + pow((y + 7.0), 2.0));
 

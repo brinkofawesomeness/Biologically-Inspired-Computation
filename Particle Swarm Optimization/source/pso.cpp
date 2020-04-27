@@ -8,14 +8,18 @@
  * 
  * USAGE> ./pso epochs numParticles inertia cognitionParam socialParam problemNum(optional)
  * 
- * This program simulates the particle swarm optimization algorithm...
+ * This program simulates the particle swarm optimization (PSO) algorithm and generates raw data 
+ * in the form of .csv files. The data generated for each run is a .csv file for the error over 
+ * time and a .csv file for the final x and y coordinates of each particle in order to graph a 
+ * scatterplot.
  * 
  * */
+
 #include <algorithm>
 #include <iostream>
-//#include <fstream>
+#include <fstream>
 #include <cstdlib>
-//#include <cstdio>
+#include <cstdio>
 #include <vector>
 #include <string>
 #include <cmath>
@@ -31,7 +35,6 @@ double inertia, cognition, social;
 double maxVelocity = 1.0,
        width = 100.0,
        height = 100.0;
-
 
 /* GLOBAL METHOD PROTOTYPES */
 double fitness(double x, double y);
@@ -53,7 +56,6 @@ class Particle {
         
 };
 
-
 /* PARTICLE CONSTRUCTOR */
 Particle::Particle() {
 
@@ -64,7 +66,6 @@ Particle::Particle() {
     ybest = ypos = (rand2 - (height / 2.0));
     xvelocity = yvelocity = 0.0;
 }
-
 
 /* UPDATE PARTICLE */
 void Particle::update() {
@@ -139,6 +140,13 @@ int main(int argc, char** argv) {
         }
     }
 
+    // Open file to write data to
+    ofstream csv;
+    char filename[512];
+    sprintf(filename, "../data/error_%d_%.1f_%.1f_%.1f_%d.csv", (int) population.size(), inertia, cognition, social, problem);
+    csv.open(filename);
+    csv << "Epoch,Error x, Error y" << endl;
+
     // Iterate while we are under epoch limit or error threshold
     int epoch = 0;
     double x_error, y_error;
@@ -160,13 +168,19 @@ int main(int argc, char** argv) {
         y_error = sqrt((1.0 / (2.0 * population.size())) * y_error);
         epoch++;
 
-        // printScatterPlotData(filename);
-
+        // Record error data
+        csv << epoch << "," << x_error << "," << y_error << endl;
 
     } while (epoch < epochLimit && (x_error > threshold_error || y_error > threshold_error));
 
-    cout << "Convergence at epoch: " << epoch << endl;
-    cout << "Error: X(" << x_error << ") Y(" << y_error << ")" << endl << endl;
+    csv << endl << endl << endl;
+    csv << "Converged at epoch: " << epoch << endl;
+    csv.close();
+
+    // Save the scatterplot data
+    char scatterplot[512];
+    sprintf(scatterplot, "../data/scatterplot_%d_%.1f_%.1f_%.1f_%d.csv", (int) population.size(), inertia, cognition, social, problem);
+    printScatterPlotData(scatterplot);
 
     return 0;
 }
@@ -194,8 +208,16 @@ double fitness(double x, double y) {
     return fitness;
 }
 
-
-/* PRINT DATA */
+/* PRINT SCATTERPLOT DATA */
 void printScatterPlotData(char* filename) {
 
+    ofstream scatterplot;
+    scatterplot.open(filename);
+    scatterplot << "Particle (i),X,Y" << endl;
+
+    for (int i = 0; i < population.size(); i++) {
+        scatterplot << (i + 1) << "," << population[i].xpos << "," << population[i].ypos << endl;
+    }
+
+    scatterplot.close();
 }

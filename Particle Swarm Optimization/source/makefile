@@ -15,7 +15,7 @@ FLAGS = -Wall -Werror -g
 
 # generic compilation
 
-all: pso
+all: pso generateData
 
 pso: pso.o
 	$(CC) $(FLAGS) -o pso pso.o
@@ -24,8 +24,15 @@ pso: pso.o
 pso.o: pso.cpp
 	$(CC) $(FLAGS) -c pso.cpp
 
+generateData: generateData.o
+	$(CC) $(FLAGS) -o generateData generateData.o
+	$(RM) *.o
+
+generateData.o: generateData.cpp
+	$(CC) $(FLAGS) -c generateData.cpp
+
 clean:
-	$(RM) *.o pso
+	$(RM) *.o pso generateData
 
 clean-data:
 	$(RM) ../data/*

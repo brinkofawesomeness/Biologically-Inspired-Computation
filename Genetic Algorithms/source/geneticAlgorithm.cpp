@@ -138,10 +138,11 @@ void GeneticAlgorithm::mating() {
 		}
 
 		// Mutate, baby
+		int mutate;
 		for (int j = 0; j < nextGeneration[nextGeneration.size() - 1]->genes.length(); j++) {
-			int mutate = rand() % 100 + 1;
+			mutate = rand() % 1000 + 1;
 			
-			if (mutate % 2 == 0) {
+			if (mutate < mutProbability) {
 				if (nextGeneration[nextGeneration.size() - 1]->genes[j] == '0') {
 					nextGeneration[nextGeneration.size() - 1]->genes[j] = '1';
 				} else {
@@ -150,9 +151,9 @@ void GeneticAlgorithm::mating() {
 			}
 		}
 		for (int j = 0; j < nextGeneration[nextGeneration.size() - 2]->genes.length(); j++) {
-			int mutate = rand() % 100 + 1;
+			mutate = rand() % 1000 + 1;
 			
-			if (mutate % 2 == 0) {
+			if (mutate < mutProbability) {
 				if (nextGeneration[nextGeneration.size() - 2]->genes[j] == '0') {
 					nextGeneration[nextGeneration.size() - 2]->genes[j] = '1';
 				} else {

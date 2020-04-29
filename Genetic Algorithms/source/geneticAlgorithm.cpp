@@ -1,12 +1,12 @@
 /* 
  * Conner Brinkley
- * April 9, 2020
+ * April 29, 2020
  * 
  * The University of Tennessee
  * Biologically-Inspired Computation
  * Project 4: Genetic Algorithms
  * 
- * USAGE> ./geneticAlgorithm ID l N G p_m p_c
+ * USAGE> ./geneticAlgorithm id numGenes populationSize generations mutationProb crossoverProb
  * 
  * This program simulates a basic genetic algorithm using the fitness 
  * function F(s) = (x / 2^l)^10.
@@ -54,11 +54,12 @@ class GeneticAlgorithm {
 		void evolve();
 		void appendToCSV();
 	private:
-		char filepath[512];
-		int generations;
-		double mutProbability, crossProbability;
-		vector <double> bestFit, avgFit, numCorrectBits;
+		void mating();
 		vector <Individual *> population, nextGeneration;
+		vector <double> bestFit, avgFit, numCorrectBits;
+		double mutProbability, crossProbability;
+		int generations;
+		char filepath[512];
 };
 
 /* INIT */
@@ -66,7 +67,6 @@ GeneticAlgorithm::GeneticAlgorithm(int ID, int numGenes, int popSize, int g, dou
 
 	// Initialize the population
 	string init;
-	srand(time(NULL));
 	for (int i = 0; i < popSize; i++) {
 
 		// Randomize the bit string based on even or odd random number
@@ -93,12 +93,81 @@ GeneticAlgorithm::GeneticAlgorithm(int ID, int numGenes, int popSize, int g, dou
 	sprintf(filepath, "../data/sim%d.csv", ID);
 }
 
+/* MATING LOOP */
+void GeneticAlgorithm::mating() {
+	
+	// Get it on
+	for (int i = 0; i < (((int) population.size()) / 2); i++) {
+
+		// Pick two parents
+		int idx1, idx2;
+		int randNum1 = rand() % 1000 + 1, randNum2;
+		double rand1 = 1.0 / double(randNum1), rand2;
+		
+		for (idx1 = 0; idx1 < (int) population.size() - 1; idx1++) {
+			if (population[idx1]->runningSum > rand1) break;
+		}
+		
+		do {
+			randNum2 = rand() % 1000 + 1;
+			rand2 = 1.0 / double(randNum2);
+			for (idx2 = 0; idx2 < (int) population.size() - 1; idx2++) {
+				if (idx1 != idx2 && population[idx2]->runningSum > rand2) break;
+			}
+		} while (idx1 == idx2);
+
+		// Collab (crossover genes)
+		int crossover = rand() % 1000 + 1;
+		if (crossover < crossProbability) {
+	
+			int point = rand() % (population[idx1]->genes).length() + 1;
+			string tmp1 = population[idx1]->genes;
+			string tmp2 = population[idx2]->genes;
+			
+			for (int j = 0; j < point; j++) {
+				tmp1[j] = population[idx2]->genes[j];
+				tmp2[j] = population[idx1]->genes[j];
+			}
+
+			nextGeneration.push_back(new Individual(tmp1));
+			nextGeneration.push_back(new Individual(tmp2));
+
+		} else {
+			nextGeneration.push_back(new Individual(population[idx1]->genes));
+			nextGeneration.push_back(new Individual(population[idx1]->genes));
+		}
+
+		// Mutate, baby
+		for (int j = 0; j < nextGeneration[nextGeneration.size() - 1]->genes.length(); j++) {
+			int mutate = rand() % 100 + 1;
+			
+			if (mutate % 2 == 0) {
+				if (nextGeneration[nextGeneration.size() - 1]->genes[j] == '0') {
+					nextGeneration[nextGeneration.size() - 1]->genes[j] = '1';
+				} else {
+					nextGeneration[nextGeneration.size() - 1]->genes[j] = '0';
+				}
+			}
+		}
+		for (int j = 0; j < nextGeneration[nextGeneration.size() - 2]->genes.length(); j++) {
+			int mutate = rand() % 100 + 1;
+			
+			if (mutate % 2 == 0) {
+				if (nextGeneration[nextGeneration.size() - 2]->genes[j] == '0') {
+					nextGeneration[nextGeneration.size() - 2]->genes[j] = '1';
+				} else {
+					nextGeneration[nextGeneration.size() - 2]->genes[j] = '0';
+				}
+			}
+		}
+	}
+}
+
 /* EVOLVES THE POPULATION */
 void GeneticAlgorithm::evolve() {
 
 	// Keep track of
 	double totalFit, maxFit, sum, maxIdx;
-	srand(time(NULL));
 
 	// Do for each generation
 	for (int g = 0; g < generations; g++) {
@@ -133,63 +202,8 @@ void GeneticAlgorithm::evolve() {
 			population[i]->runningSum = sum;
 		}
 
-		// Get it on
-		for (int i = 0; i < (((int) population.size()) / 2); i++) {
-
-			// Pick two parents
-			int idx1, idx2;
-			int randNum1 = rand() % 1000 + 1, randNum2;
-			double rand1 = 1.0 / double(randNum1), rand2;
-			for (idx1 = 0; idx1 < (int) population.size(); idx1++) {
-				if (population[idx1]->runningSum > rand1) break;
-			}
-			do {
-				randNum2 = rand() % 1000 + 1;
-				rand2 = 1.0 / double(randNum2);
-				for (idx2 = 0; idx2 < (int) population.size(); idx2++) {
-					if (idx1 != idx2 && population[idx2]->runningSum > rand2) break;
-				}
-			} while (idx1 == idx2);
-
-			// Collab (crossover genes)
-			int crossover = rand() % 1000 + 1;
-			if (crossover < crossProbability) {
-				int point = rand() % population[idx1]->genes.length();
-				string tmp1 = population[idx1]->genes;
-				string tmp2 = population[idx2]->genes;
-				for (int j = 0; j < point; j++) {
-					tmp1[j] = population[idx2]->genes[j];
-					tmp2[j] = population[idx1]->genes[j];
-				}
-				nextGeneration.push_back(new Individual(tmp1));
-				nextGeneration.push_back(new Individual(tmp2));
-			} else {
-				nextGeneration.push_back(population[idx1]);
-				nextGeneration.push_back(population[idx2]);
-			}
-
-			// Mutate, baby
-			for (int j = 0; j < nextGeneration[nextGeneration.size() - 1]->genes.length(); j++) {
-				int mutate = rand() % 100 + 1;
-				if (mutate % 2 == 0) {
-					if (nextGeneration[nextGeneration.size() - 1]->genes[j] == '0') {
-						nextGeneration[nextGeneration.size() - 1]->genes[j] = '1';
-					} else {
-						nextGeneration[nextGeneration.size() - 1]->genes[j] = '0';
-					}
-				}
-			}
-			for (int j = 0; j < nextGeneration[nextGeneration.size() - 2]->genes.length(); j++) {
-				int mutate = rand() % 100 + 1;
-				if (mutate % 2 == 0) {
-					if (nextGeneration[nextGeneration.size() - 2]->genes[j] == '0') {
-						nextGeneration[nextGeneration.size() - 2]->genes[j] = '1';
-					} else {
-						nextGeneration[nextGeneration.size() - 2]->genes[j] = '0';
-					}
-				}
-			}
-		}
+		// Mate
+		mating();
 
 		// Copy the next generation to the current population
 		population.clear();
@@ -201,6 +215,7 @@ void GeneticAlgorithm::evolve() {
 
 /* WRITES THE DATA TO A FILE */
 void GeneticAlgorithm::appendToCSV() {
+
 	ofstream csv;
 	csv.open(filepath, std::ofstream::out | std::ofstream::app);
 	csv << endl;
@@ -215,7 +230,7 @@ int main(int argc, char **argv) {
 
 	// Error checking
 	if (argc != 7) {
-		printf("USAGE: ./geneticAlgorithm ID l N G p_m p_c\n");
+		printf("USAGE: ./geneticAlgorithm id numGenes populationSize generations mutationProb crossoverProb\n");
 		exit(0);
 	}
 
@@ -240,7 +255,7 @@ int main(int argc, char **argv) {
 	// Repeat over 10 runs to find typical behavior
 	srand(time(NULL));
 	for (int run = 0; run < 10; run++) {
-		
+
 		// Initialize the population and let it run its course
 		GeneticAlgorithm *ga = new GeneticAlgorithm(id, numGenes, popSize, generations, mutProbability, crossProbability);
 		ga->evolve();

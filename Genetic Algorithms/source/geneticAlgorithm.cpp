@@ -220,7 +220,7 @@ void GeneticAlgorithm::appendToCSV() {
 	csv.open(filepath, std::ofstream::out | std::ofstream::app);
 	csv << endl;
 	for (int gen = 0; gen < generations; gen++) {
-		csv << gen << "," << bestFit[gen] << "," << avgFit[gen] << "," << numCorrectBits[gen] << endl;
+		csv << gen+1 << "," << avgFit[gen] << "," << bestFit[gen] << "," << numCorrectBits[gen] << endl;
 	}
 	csv.close();
 }
@@ -252,9 +252,9 @@ int main(int argc, char **argv) {
 	csv << "Generation,Avg Fitness,Best Fitness,# of Correct Bits in Best" << endl;
 	csv.close();
 
-	// Repeat over 10 runs to find typical behavior
+	// Repeat over 20 runs to find typical behavior
 	srand(time(NULL));
-	for (int run = 0; run < 10; run++) {
+	for (int run = 0; run < 20; run++) {
 
 		// Initialize the population and let it run its course
 		GeneticAlgorithm *ga = new GeneticAlgorithm(id, numGenes, popSize, generations, mutProbability, crossProbability);
